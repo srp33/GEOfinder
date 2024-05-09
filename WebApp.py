@@ -1,11 +1,13 @@
 # Final Copy
 import cherrypy
 import re 
+#import simpleDictionary
 
 class WebApp:
 
     @cherrypy.expose
     def index(self):
+        #print(f"\n\n\n dictionary: \n\n\n {simpleDictionary}")
         return self.top_half_html()
 
     @cherrypy.expose
@@ -17,6 +19,10 @@ class WebApp:
     def top_half_html(self, ids = ""):
         return f"""
         <html>
+        <link 
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css"
+        >
         <head></head>
         <body>
         <h1>Enter GEO Accession IDs:</h1>
@@ -44,7 +50,7 @@ class WebApp:
         if (ids == ""):
             return ""
         rows = ""
-        ids = ids.upper()
+        ids = ids.strip().upper()
         invalid = []
         for id in re.split(r"\n|,",ids):
             if not re.search(r"GSE\d+",id):
@@ -63,10 +69,8 @@ if __name__ == '__main__':
 
 
 ''' To-Do:
-    - make text area
-    - check valid inputs. Allow "," and "\n".
-    - CSS: (Tail Wind or) Bulma.io. Installation: cdn + head tag
-    - Simple separate py script to gen Dict. Key=GSE, Val=dct. Inner dct: k,v with dataset features. Convert Dct to dumps() (json pkg) - converts dct to str. Save json to file. 
+    - CSS: play around with Bulma more
+    - look into how to import the python dictionary -  Convert Dct to dumps() (json pkg) - converts dct to str. Save json to file. 
         - webapp reads in json using loads() to convert to dct
 
     Later:
