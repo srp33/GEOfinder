@@ -1,5 +1,6 @@
 # Final Copy
 import cherrypy
+import re 
 
 class WebApp:
 
@@ -20,11 +21,12 @@ class WebApp:
         <body>
         <h1>Enter GEO Accession IDs:</h1>
         <form action="/query" method="post">
-            <input type="text" name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)">
-            <button type="submit">Add Data</button>
+            <textarea name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)" rows="20" cols="50"></textarea>
+            <button type="submit">Submit</button>
         </form>
         """
     
+    #<input type="text" name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)">
     def bottom_half_html(self, ids):
         return f"""
         <table id="myTable" border="1">
@@ -42,9 +44,17 @@ class WebApp:
         if (ids == ""):
             return ""
         rows = ""
-        for d in ids.split(","):
-            rows += f"<tr><td>{d}</td></tr>"
+        ids = ids.upper()
+        invalid = []
+        for id in re.split(r"\n|,",ids):
+            if not re.search(r"GSE\d+",id):
+                invalid.append(id)
+            else:
+                rows += f"<tr><td>{id}</td></tr>"
+        if invalid:
+            return f"<h3>Sorry, the following IDs you entered were invalid: {invalid}</h3>"
         return rows
+    
     
 
 
