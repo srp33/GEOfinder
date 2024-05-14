@@ -1,1 +1,4 @@
-#this is a test for gitHub 
+from simpleDictionary import myDict
+
+if __name__ == '__main__':
+    print(myDict)
