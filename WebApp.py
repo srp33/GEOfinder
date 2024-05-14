@@ -28,8 +28,9 @@ class WebApp:
         <h1 class="mt-3 subtitle is-3 has-text-centered is-family-sans-serif">Enter GEO Accession IDs:</h1>
         <form action="/query" method="post">
             <textarea
-                name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)" rows="20" cols="50"></textarea>
-            <button type="submit">Submit</button>
+                class="content is-medium textarea has-fixed-size textarea is-hovered textarea is-danger"
+                name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)" rows="10"></textarea>
+            <button class="button is-danger" type="submit">Submit</button>
         </form>
             
         """
@@ -41,12 +42,17 @@ class WebApp:
     #<input type="text" name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)">
     def bottom_half_html(self, ids):
         return f"""
-        <table class="content is-medium" id="myTable" border="1">
-            <tr>
-                <th>Data</th>
-            </tr>
-            {self.generate_table_rows(ids)}
-        </table>
+        <h1 class="py-6 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">Relevent Studies:</h1>
+        <div class="columns is-centered">
+            <div class="columns is-three-quarters">
+                <table class="table is-size-medium" id="myTable" border="1">
+                    <tr>
+                        <th class=>GSE ID</th>
+                    </tr>
+                    {self.generate_table_rows(ids)}
+                </table>
+            </div>
+        </div>
         </body>
         </html>
         """ 
