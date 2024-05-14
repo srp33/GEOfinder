@@ -27,9 +27,11 @@ class WebApp:
         <body>
         <h1>Enter GEO Accession IDs:</h1>
         <form action="/query" method="post">
-            <textarea name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)" rows="20" cols="50"></textarea>
+            <textarea
+                name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)" rows="20" cols="50"></textarea>
             <button type="submit">Submit</button>
         </form>
+            
         """
     
     #<input type="text" name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)">
