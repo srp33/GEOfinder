@@ -25,18 +25,23 @@ class WebApp:
         >
         <head></head>
         <body>
-        <h1>Enter GEO Accession IDs:</h1>
+        <h1 class="mt-3 subtitle is-3 has-text-centered is-family-sans-serif">Enter GEO Accession IDs:</h1>
         <form action="/query" method="post">
-            <textarea name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)" rows="20" cols="50"></textarea>
-            <button type="submit">Submit</button>
+            <textarea 
+                class="content is-medium textarea has-fixed-size textarea is-hovered textarea is-danger"
+                name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)"></textarea>
+            <button class="button is-danger" type="submit">Submit</button>
         </form>
         """
+    #class="mt-3 subtitle is-3 has-text-centered"
+    #class="content is-large has-text-black"
+    #<input type="text" name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)">
+    #rows="20" cols="50
     
     #<input type="text" name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)">
     def bottom_half_html(self, ids):
         return f"""
-        <table id="myTable" border="1">
-        <!-- table id="myTable" style="display:none" border="1" -->
+        <table class="content is-medium" id="myTable" border="1">
             <tr>
                 <th>Data</th>
             </tr>
