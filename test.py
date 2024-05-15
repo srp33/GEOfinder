@@ -1,4 +1,8 @@
-from simpleDictionary import myDict
+import json 
+
 
 if __name__ == '__main__':
-    print(myDict)
+    with open("myDict.json") as readFile:
+        # converts json into dictionary
+        myDict = json.loads(readFile.read())
+        print(myDict)
