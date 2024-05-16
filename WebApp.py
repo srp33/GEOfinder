@@ -2,6 +2,7 @@
 import cherrypy
 import re 
 import json
+import chromadbBasics
 
 class WebApp:
 
@@ -17,11 +18,22 @@ class WebApp:
     #Internal:
 
     def import_dict():
+        print("\nIn import_dict()\n")
         with open("myDict.json", "r") as read_file:
             my_dict = json.loads(read_file.read())
         return my_dict
+    
+    def create_id_list(file_name):
+        print("\nIn create_id_lst()\\n")
+        database_ids = []
+
+        with open(file_name) as id_file:
+            for id in id_file.read().split(","):
+                database_ids.append(id.strip().strip('"'))
+        return database_ids
 
     def top_half_html(self, ids = ""):
+        print("\n in top_half()\n")
         return f"""
         <html>
         <link 
@@ -46,6 +58,7 @@ class WebApp:
     
     #<input type="text" name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)">
     def bottom_half_html(self, ids):
+        print("\n in bottom_half()\n")
         return f"""
         <h1 class="py-4 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">Relevant Studies:</h1>
         <div class="columns is-centered">
@@ -60,6 +73,7 @@ class WebApp:
         """ 
 
     def generate_table_rows(self, ids):
+        print("\n in generate_table_rows()\n")
         if (ids == ""):
             return ""
         
@@ -68,15 +82,16 @@ class WebApp:
         not_found_ids = []
         valid_ids = []
         
-        my_dict = WebApp.import_dict()
-        # print(f"keys: {my_dict.keys()}")
+        # access comprehensive list of ids from external csv
+        database_ids = WebApp.create_id_list("testChromaIDs.csv")
+        # print(f"\n database_ids: {database_ids}")
 
         for id in id_lst:
             id = id.strip().upper()
 
             if not re.search(r"GSE\d+",id.strip().upper()):
                 bad_format_ids.append(id)
-            elif id not in my_dict.keys():
+            elif id not in database_ids:
                 not_found_ids.append(id)
             else: 
                 valid_ids.append(id)
@@ -86,17 +101,21 @@ class WebApp:
             error_message = ""
 
             if bad_format_ids:
-                error_message += f"<tr><td>Sorry, the following IDs you entered were formatted incorrectly: {", ".join(bad_format_ids)}</td></tr>"
+                error_message += f"<tr><td>Sorry, the following IDs you entered were formatted incorrectly: {', '.join(bad_format_ids)}</td></tr>"
             if not_found_ids:
-                error_message +=f"<tr><td>The following IDs you entered were not found in our database: {", ".join(not_found_ids)}</td></tr>"
+                error_message +=f"<tr><td>The following IDs you entered were not found in our database: {', '.join(not_found_ids)}</td></tr>"
             if valid_ids:
-                error_message +=f"<tr><td>The following IDs you entered were valid: {", ".join(valid_ids)}</td></tr>"
+                error_message +=f"<tr><td>The following IDs you entered were valid: {', '.join(valid_ids)}</td></tr>"
             
             return error_message
         
         else:
+            # call chromadbBasics to create json file of answers
+            chromadbBasics.generate_results(valid_ids)
+            my_dict = WebApp.import_dict()
+
             rows = "<tr> <th>GSE ID</th> <th>Description</th> <th>Platform</th> <th>Samples</th> </tr>"
-            for id in valid_ids:
+            for id in my_dict.keys():
                 rows += f"<tr> <td>{id}</td>  <td>{my_dict[id]['Description']}</td>  <td>{my_dict[id]['Platform']}</td>  <td>{my_dict[id]['Samples']}</td> </tr>"
             return rows
     
