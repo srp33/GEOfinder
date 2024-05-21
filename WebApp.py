@@ -85,8 +85,8 @@ class WebApp:
         return error_message
     
     def generate_rows(valid_ids):
-        # call chromadbBasics to create json file of answers
-            chromadbBasics.generate_results(valid_ids)
+        # call analyzeData to create json file of answers
+            analyzeData.generate_results(valid_ids)
             my_dict = WebApp.import_results_dict()
 
             rows = "<tr> <th>GSE ID</th> <th>Description</th> <th>Platform</th> <th>Samples</th> </tr>"
@@ -136,7 +136,7 @@ if __name__ == '__main__':
         - webapp reads in json using loads() to convert to dct
 
     Later:
-    - create vector database with chromadb. Access vec dbse after submit, display that info. Generate 100 vecs, size 100 (#s)
+    - create vector database with. Access vec dbse after submit, display that info. Generate 100 vecs, size 100 (#s)
 
     Eventially:
     - file with data
