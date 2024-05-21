@@ -17,17 +17,17 @@ class WebApp:
 
     #Internal:
 
-    def import_dict():
-        print("\nIn import_dict()\n")
-        with open("myDict.json", "r") as read_file:
+    def import_results_dict():
+        print("\nIn import_results_dict()\n")
+        with open("resultsDict.json", "r") as read_file:
             my_dict = json.loads(read_file.read())
         return my_dict
-    
-    def create_id_list(file_name):
+
+    def create_id_list():
         print("\nIn create_id_lst()\\n")
         database_ids = []
 
-        with open(file_name) as id_file:
+        with open("testChromaIDs.csv") as id_file:
             for id in id_file.read().split(","):
                 database_ids.append(id.strip().strip('"'))
         return database_ids
@@ -64,7 +64,7 @@ class WebApp:
         <div class="columns is-centered">
             <div class="columns is-three-quarters">
                 <table class="table is-size-medium" id="myTable" border="1">
-                    {self.generate_table_rows(ids)}
+                    {self.generate_output_from_ids(ids)}
                 </table>
             </div>
         </div>
@@ -72,7 +72,29 @@ class WebApp:
         </html>
         """ 
 
-    def generate_table_rows(self, ids):
+    def generate_error(bad_format_ids, not_found_ids, valid_ids):
+        error_message = ""
+
+        if bad_format_ids:
+            error_message += f"<tr><td>Sorry, the following IDs you entered were formatted incorrectly: {', '.join(bad_format_ids)}</td></tr>"
+        if not_found_ids:
+            error_message +=f"<tr><td>The following IDs you entered were not found in our database: {', '.join(not_found_ids)}</td></tr>"
+        if valid_ids:
+            error_message +=f"<tr><td>The following IDs you entered were valid: {', '.join(valid_ids)}</td></tr>"
+        
+        return error_message
+    
+    def generate_rows(valid_ids):
+        # call chromadbBasics to create json file of answers
+            chromadbBasics.generate_results(valid_ids)
+            my_dict = WebApp.import_results_dict()
+
+            rows = "<tr> <th>GSE ID</th> <th>Description</th> <th>Platform</th> <th>Samples</th> </tr>"
+            for id in my_dict.keys():
+                rows += f"<tr> <td>{id}</td>  <td>{my_dict[id]['Description']}</td>  <td>{my_dict[id]['Platform']}</td>  <td>{my_dict[id]['Samples']}</td> </tr>"
+            return rows
+
+    def generate_output_from_ids(self, ids):
         print("\n in generate_table_rows()\n")
         if (ids == ""):
             return ""
@@ -83,13 +105,12 @@ class WebApp:
         valid_ids = []
         
         # access comprehensive list of ids from external csv
-        database_ids = WebApp.create_id_list("testChromaIDs.csv")
-        # print(f"\n database_ids: {database_ids}")
+        database_ids = WebApp.create_id_list()
 
         for id in id_lst:
             id = id.strip().upper()
 
-            if not re.search(r"GSE\d+",id.strip().upper()):
+            if not re.search(r"GSE\d+",id):
                 bad_format_ids.append(id)
             elif id not in database_ids:
                 not_found_ids.append(id)
@@ -98,26 +119,9 @@ class WebApp:
 
         #test values: gse001, gse002, gse789, gse990, jkf292, fif404
         if bad_format_ids or not_found_ids:    
-            error_message = ""
-
-            if bad_format_ids:
-                error_message += f"<tr><td>Sorry, the following IDs you entered were formatted incorrectly: {', '.join(bad_format_ids)}</td></tr>"
-            if not_found_ids:
-                error_message +=f"<tr><td>The following IDs you entered were not found in our database: {', '.join(not_found_ids)}</td></tr>"
-            if valid_ids:
-                error_message +=f"<tr><td>The following IDs you entered were valid: {', '.join(valid_ids)}</td></tr>"
-            
-            return error_message
-        
+            return WebApp.generate_error(bad_format_ids, not_found_ids, valid_ids)
         else:
-            # call chromadbBasics to create json file of answers
-            chromadbBasics.generate_results(valid_ids)
-            my_dict = WebApp.import_dict()
-
-            rows = "<tr> <th>GSE ID</th> <th>Description</th> <th>Platform</th> <th>Samples</th> </tr>"
-            for id in my_dict.keys():
-                rows += f"<tr> <td>{id}</td>  <td>{my_dict[id]['Description']}</td>  <td>{my_dict[id]['Platform']}</td>  <td>{my_dict[id]['Samples']}</td> </tr>"
-            return rows
+            return WebApp.generate_rows(valid_ids)
     
     
 
