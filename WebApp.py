@@ -2,7 +2,7 @@
 import cherrypy
 import re 
 import json
-import chromadbBasics
+import analyzeData
 
 class WebApp:
 
