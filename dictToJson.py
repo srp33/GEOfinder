@@ -21,6 +21,7 @@ def main():
     with open("collectionDict.json", "w") as write_file:
         json.dump(id_doc_dict, write_file)
 
+
 """
 To load json into dict:
 

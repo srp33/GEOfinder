@@ -2,7 +2,7 @@
 import cherrypy
 import re 
 import json
-import analyzeData
+import chromadb
 
 class WebApp:
 
@@ -16,12 +16,6 @@ class WebApp:
         return self.top_half_html(ids) + self.bottom_half_html(ids)
 
     #Internal:
-
-    def import_results_dict():
-        print("\nIn import_results_dict()\n")
-        with open("resultsDict.json", "r") as read_file:
-            my_dict = json.loads(read_file.read())
-        return my_dict
 
     def create_id_list():
         print("\nIn create_id_lst()\\n")
@@ -100,15 +94,31 @@ class WebApp:
         
         return error_message
     
-    def generate_rows(valid_ids):
-        # call analyzeData to create json file of answers
-            analyzeData.generate_results(valid_ids)
-            my_dict = WebApp.import_results_dict()
+    def generate_query_results(input_ids):
+        with open("collectionDict.json") as load_file:
+            collection_dict = json.load(load_file)
 
-            rows = "<tr> <th>GSE ID</th> <th>Description</th> <th>Platform</th> <th>Samples</th> </tr>"
-            for id in my_dict.keys():
-                rows += f"<tr> <td>{id}</td>  <td>{my_dict[id]['Description']}</td>  <td>{my_dict[id]['Platform']}</td>  <td>{my_dict[id]['Samples']}</td> </tr>"
-            return rows
+        chroma_client = chromadb.PersistentClient(path="C:/Users/annat/OneDrive/Documents/College/Spring2024/PiccoloResearchLab/GEOfinder")
+        my_collection = chroma_client.get_collection(name="collection1")
+        similarityResults = my_collection.query(query_texts=[collection_dict[input_ids[i]] for i in range(len(input_ids))], n_results=5)
+
+        formatted_dict = {}
+        for i in range(5):
+            formatted_dict[similarityResults['ids'][0][i]] = {"Description": similarityResults['documents'][0][i], "Platform": "None", "Samples": "None"}
+
+        return formatted_dict
+    
+    def generate_rows(valid_ids):
+        # Old code:
+        # call analyzeData to create json file of answers
+            # analyzeData.generate_results(valid_ids)
+
+        results_dict = WebApp.generate_query_results(valid_ids)
+
+        rows = "<tr> <th>GSE ID</th> <th>Description</th> <th>Platform</th> <th>Samples</th> </tr>"
+        for id in results_dict.keys():
+            rows += f"<tr> <td>{id}</td>  <td>{results_dict[id]['Description']}</td>  <td>{results_dict[id]['Platform']}</td>  <td>{results_dict[id]['Samples']}</td> </tr>"
+        return rows
 
     def generate_output_from_ids(self, ids):
         print("\n in generate_table_rows()\n")
