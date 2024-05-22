@@ -49,6 +49,22 @@ class WebApp:
                 name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)" rows="10"></textarea>
             <button class="button is-info" type="submit">Submit</button>
         </form>
+        <script>
+        function check_input() {{
+                var input = document.getElementById('user_input').value;
+                var button = document.getElementById('submit_button');
+                button.disabled = input === '';
+        }} 
+        function submit_form() {{
+            // Disable the submit button
+            var button = document.getElementById('submit_button');
+            var textarea = document.getElementById('user_input');
+            button.disabled = true;
+            textarea.value = "";
+            textarea.placeholder = "loading results..."
+            // call other function that's supposed to be called 
+        }}
+        </script>
             
         """
     #class="mt-3 subtitle is-3 has-text-centered"
