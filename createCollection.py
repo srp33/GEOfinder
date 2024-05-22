@@ -13,8 +13,8 @@ if __name__ == "__main__":
 
 
 '''
-- separate webpp and analData
-- dont store results in json. direct access
+- Xseparate webpp and analData
+- Xdont store results in json. direct access
 - find way to anal multi vecors
 - sort based on vector. (one hot encoding if need to average vectors to one)
 '''

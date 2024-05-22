@@ -100,6 +100,7 @@ class WebApp:
 
         chroma_client = chromadb.PersistentClient(path="C:/Users/annat/OneDrive/Documents/College/Spring2024/PiccoloResearchLab/GEOfinder")
         my_collection = chroma_client.get_collection(name="collection1")
+        
         similarityResults = my_collection.query(query_texts=[collection_dict[input_ids[i]] for i in range(len(input_ids))], n_results=5)
 
         formatted_dict = {}
