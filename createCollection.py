@@ -10,7 +10,7 @@ if __name__ == "__main__":
     chroma_client = chromadb.PersistentClient(path=".")
     collection1 = chroma_client.create_collection(name="collection1")
 
-    collection1.add(documents=list(id_doc_dict.values()), ids = list(id_doc_dict.keys()))
+    collection1.add(ids = list(id_doc_dict.keys()), documents=list(id_doc_dict.values()))
 
 
 '''

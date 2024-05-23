@@ -1,4 +1,5 @@
 import json
+import csv
 
 def main():
     id_doc_dict = {}
@@ -14,12 +15,20 @@ def main():
         for line in doc_file:
             test_docs.append(line.strip().strip(",").strip('"'))
 
+    with open("testChromaEmbeddings.csv", "r", newline="") as embedding_file:
+        test_embeddings = []
+        reader = csv.reader(embedding_file)
+        for row in reader:
+            test_embeddings.append(row)
+
+
     for i in range(100):
-        id_doc_dict[test_ids[i]] = test_docs[i]
+        id_doc_dict[test_ids[i]] = {"Doc": test_docs[i], "Embedding": test_embeddings[i]}
 
     # Dump to json file
-    with open("collectionDict.json", "w") as write_file:
+    with open("embeddingCollectionDict.json", "w") as write_file:
         json.dump(id_doc_dict, write_file)
+
 
 
 """
