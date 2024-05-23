@@ -6,7 +6,8 @@ if __name__ == "__main__":
        id_doc_dict = json.load(load_file)
 
     # create collection and populate with data
-    chroma_client = chromadb.PersistentClient(path="C:/Users/annat/OneDrive/Documents/College/Spring2024/PiccoloResearchLab/GEOfinder")
+    # chroma_client = chromadb.PersistentClient(path="C:/Users/annat/OneDrive/Documents/College/Spring2024/PiccoloResearchLab/GEOfinder")
+    chroma_client = chromadb.PersistentClient(path=".")
     collection1 = chroma_client.create_collection(name="collection1")
 
     collection1.add(documents=list(id_doc_dict.values()), ids = list(id_doc_dict.keys()))

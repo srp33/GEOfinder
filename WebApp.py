@@ -157,14 +157,12 @@ if __name__ == '__main__':
     cherrypy.quickstart(WebApp(), '/')
 
 
-''' To-Do:
-    - CSS: play around with Bulma more
-    - look into how to import the python dictionary -  Convert Dct to dumps() (json pkg) - converts dct to str. Save json to file. 
-        - webapp reads in json using loads() to convert to dct
+''' To-Do: 5/23
+    - try except block around every function in WebApp
+    - Create file with dummy metadatas for each dataset: spec name (hu, mouse, rat), num samples (int 1-10, 11-50, 51-100, 101-500, 501-1000, 1000+), platform (RNA seq, Microarray)
+        - add way to filter based on these on WebApp
+    - Pandas
 
-    Later:
-    - create vector database with. Access vec dbse after submit, display that info. Generate 100 vecs, size 100 (#s)
+    - Long term: enter text, vs GSE id, with keywords to base search on
 
-    Eventially:
-    - file with data
 '''
