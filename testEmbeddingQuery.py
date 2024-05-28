@@ -4,13 +4,9 @@ import re
 import numpy as np
 import chromadb
 
-# Create synthesized "average" embedding. Representative of multiple inputs
+# Get all "database" embeddings
 with open("embeddingCollectionDict.json") as data_file:
     embedding_collection = json.load(data_file)
-
-# convert all embedding values from strs to floats
-for id in embedding_collection.keys():
-    embedding_collection[id]["Embedding"] = [float(num) for num in embedding_collection[id]["Embedding"]]
 
 # get collection
 chroma_client = chromadb.PersistentClient(path=".")
