@@ -17,9 +17,12 @@ for id in embedding_collection.keys():
 chroma_client = chromadb.PersistentClient(path=".")
 my_collection = chroma_client.create_collection(name="embedding_collection")
 
+embedding_coll_vals = list(embedding_collection.values())
+
 my_collection.add(ids = list(embedding_collection.keys()), \
-                         documents=[inner_dct["Doc"] for inner_dct in list(embedding_collection.values())], \
-                            embeddings=[inner_dct["Embedding"] for inner_dct in list(embedding_collection.values())])
+                         documents=[inner_dct["Doc"] for inner_dct in embedding_coll_vals], \
+                            embeddings=[inner_dct["Embedding"] for inner_dct in embedding_coll_vals],\
+                                metadatas=[inner_dct["Metadatas"] for inner_dct in embedding_coll_vals])
 
 
 
