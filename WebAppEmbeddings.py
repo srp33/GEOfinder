@@ -10,20 +10,33 @@ class WebApp:
     @cherrypy.expose
     def index(self):
         #print(f"\n\n\n dictionary: \n\n\n {simpleDictionary}")
-        try:
-            return self.top_half_html()
-        except:
-            return self.render_error()
+        # try:
+        return self.top_half_html()
+        # except:
+        return self.render_error()
 
-
+    # a) 1-10, b) 11-50, c) 51-100, d) 101-500, e) 501-1000, f) 1000+
     @cherrypy.expose
-    def query(self, ids):
-        try:
-            return self.top_half_html(ids) + self.bottom_half_html(ids)
-        except:
-            return self.render_error()
+    def query(self, ids, human="", mouse="", rat="", a="", b="", c="", d="", e="", f="", rnaSeq="", microarr=""):
+        metadata_dct = self.process_metadatas([human, mouse, rat], [a, b, c, d, e, f], [rnaSeq, microarr])
+        # try:
+        return self.top_half_html(ids) + self.bottom_half_html(ids, metadata_dct)
+        # except:
+        return self.render_error()
 
     #Internal:
+
+    def process_metadatas(self, species, num_samples, platform):
+        metadata_dct={}
+        if species:
+            metadata_dct["Species"] = [val for val in species if val]
+        if num_samples:
+            metadata_dct["Num Samples"] = [val for val in num_samples if val]
+        if platform:
+            metadata_dct["Platform"] = [val for val in species if val]
+
+        print(f"\n\n\n{metadata_dct}\n\n\n\n")
+        return metadata_dct
 
     def create_id_list():
         print("\nIn create_id_lst()\\n")
@@ -43,31 +56,46 @@ class WebApp:
             href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css"
         >
         <head></head>
-        <body>
-        <h1 class="mt-3 subtitle is-3 has-text-centered is-family-sans-serif">Enter GEO Accession IDs:</h1>
+        <body class="mx-6">
+        <h1 class="mt-3 subtitle is-3 has-text-centered is-family-sans-serif"><u>Enter GEO Accession IDs:</u></h1>
         <form action="/query" method="post">
             <textarea
                 class="content is-medium textarea has-fixed-size textarea is-hovered textarea is-info"
                 name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)" rows="10"></textarea>
-            <button class="button is-info" type="submit">Submit</button>
-        </form>
-        <script>
-        function check_input() {{
-                var input = document.getElementById('user_input').value;
-                var button = document.getElementById('submit_button');
-                button.disabled = input === '';
-        }} 
-        function submit_form() {{
-            // Disable the submit button
-            var button = document.getElementById('submit_button');
-            var textarea = document.getElementById('user_input');
-            button.disabled = true;
-            textarea.value = "";
-            textarea.placeholder = "loading results..."
-            // call other function that's supposed to be called 
-        }}
-        </script>
-            
+
+        <h1 class="mt-3 subtitle is-4 is-family-sans-serif"><u>Filters:</u></h1>
+            <div class="columns">
+                <div class="column is-2"><strong>Species:</strong><br>
+                    <input type="checkbox" id="human" name="human" value="human">
+                    <label for="vehicle1">Human</label><br></p>
+                    <input type="checkbox" id="mouse" name="mouse" value="mouse">
+                    <label for="mouse">Mouse</label><br>
+                    <input type="checkbox" id="rat" name="rat" value="rat">
+                    <label for="rat">Rat</label><br><br>
+                </div>
+                <div class="column is-2"><strong># Samples:</strong><br>
+                    <input type="checkbox" id="a" name="a" value="1-10">
+                    <label for="vehicle1">1-10</label><br></p>
+                    <input type="checkbox" id="b" name="b" value="11-50">
+                    <label for="mouse">11-50</label><br>
+                    <input type="checkbox" id="c" name="c" value="51-100">
+                    <label for="rat">51-100</label><br>
+                    <input type="checkbox" id="d" name="d" value="101-500">
+                    <label for="rat">101-500</label><br>
+                    <input type="checkbox" id="501-1000" name="e" value="501-1000">
+                    <label for="rat">501-1000</label><br>
+                    <input type="checkbox" id="f" name="f" value="1000+">
+                    <label for="rat">1000+</label><br><br>
+                </div>
+                <div class="column is-2"><strong>Platform:</strong><br>
+                    <input type="checkbox" id="rnaSeq" name="rnaSeq" value="RNA sequencing">
+                    <label for="rnaSeq">RNA Sequencing</label><br></p>
+                    <input type="checkbox" id="microarr" name="microarr" value="Microarrays">
+                    <label for="microarr">Microarrays</label><br><br><br><br><br><br>
+                </div>
+            </div>
+        <button class="button is-info" type="submit">Submit</button>        
+        </form>            
         """
     #class="mt-3 subtitle is-3 has-text-centered"
     #class="content is-large has-text-black"
@@ -75,14 +103,14 @@ class WebApp:
     #rows="20" cols="50
     
     #<input type="text" name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)">
-    def bottom_half_html(self, ids):
+    def bottom_half_html(self, ids, metadata_dct):
         print("\n in bottom_half()\n")
         return f"""
         <h1 class="py-4 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">Relevant Studies:</h1>
         <div class="columns is-centered">
             <div class="columns is-three-quarters">
                 <table class="table is-size-medium" id="myTable" border="1">
-                    {self.generate_output_from_ids(ids)}
+                    {self.generate_output_from_ids(ids, metadata_dct)}
                 </table>
             </div>
         </div>
@@ -116,7 +144,7 @@ class WebApp:
         
         return error_message
     
-    def generate_query_results(input_ids):
+    def generate_query_results(input_ids, metadata_dct):
         with open("embeddingCollectionDict.json") as load_file:
             collection_dict = json.load(load_file)
 
@@ -132,27 +160,31 @@ class WebApp:
                 temp_sum += embedding[i]
             avg_embedding.append(round(temp_sum/len(input_embeddings), 5))
 
-        similarityResults = my_collection.query(query_embeddings=avg_embedding, n_results=5)
+        similarityResults = my_collection.query(query_embeddings=avg_embedding, where={"Species": "human"}, n_results=5)
+        # print(f"\n\n{similarityResults['metadatas'][0][0]['Platform']}\n\n")
 
         formatted_dict = {}
         for i in range(5):
-            formatted_dict[similarityResults['ids'][0][i]] = {"Description": similarityResults['documents'][0][i], "Platform": "None", "Samples": "None"}
+            formatted_dict[similarityResults['ids'][0][i]] = {"Description": similarityResults['documents'][0][i],\
+                                                               "Species": similarityResults['metadatas'][0][i]['Species'], \
+                                                                    "# Samples": similarityResults['metadatas'][0][i]['Num Samples'], \
+                                                                        "Platform": similarityResults['metadatas'][0][i]['Platform']}
 
         return formatted_dict
     
-    def generate_rows(valid_ids):
+    def generate_rows(valid_ids, metadata_dct):
         # Old code:
         # call analyzeData to create json file of answers
             # analyzeData.generate_results(valid_ids)
 
-        results_dict = WebApp.generate_query_results(valid_ids)
+        results_dict = WebApp.generate_query_results(valid_ids, metadata_dct)
 
-        rows = "<tr> <th>GSE ID</th> <th>Description</th> <th>Platform</th> <th>Samples</th> </tr>"
+        rows = "<tr> <th>GSE ID</th> <th>Description</th> <th>Species</th> <th># Samples</th> <th>Platform</th></tr>"
         for id in results_dict.keys():
-            rows += f"<tr> <td>{id}</td>  <td>{results_dict[id]['Description']}</td>  <td>{results_dict[id]['Platform']}</td>  <td>{results_dict[id]['Samples']}</td> </tr>"
+            rows += f"<tr> <td>{id}</td> <td>{results_dict[id]['Description']}</td> <td>{results_dict[id]['Species']}</td> <td>{results_dict[id]['# Samples']}</td> <td>{results_dict[id]['Platform']}</td>   </tr>"
         return rows
 
-    def generate_output_from_ids(self, ids):
+    def generate_output_from_ids(self, ids, metadata_dct):
         print("\n in generate_table_rows()\n")
         if (ids == ""):
             return ""
@@ -179,7 +211,7 @@ class WebApp:
         if bad_format_ids or not_found_ids:    
             return WebApp.invalid_id_msg(bad_format_ids, not_found_ids, valid_ids)
         else:
-            return WebApp.generate_rows(valid_ids)
+            return WebApp.generate_rows(valid_ids, metadata_dct)
     
     
 

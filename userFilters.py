@@ -71,9 +71,6 @@ class test:
             </div>        
         </p>        
         </form>
-
-
-        
         '''
 
     def results(self):
