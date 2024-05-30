@@ -4,6 +4,8 @@ import re
 import json
 import chromadb
 import traceback 
+import pandas as pd
+from sys import argv
 
 class WebApp:
 
@@ -18,7 +20,7 @@ class WebApp:
     # a) 1-10, b) 11-50, c) 51-100, d) 101-500, e) 501-1000, f) 1000+
     @cherrypy.expose
     def query(self, ids, human="", mouse="", rat="", a="", b="", c="", d="", e="", f="", rnaSeq="", microarr=""):
-        metadata_dct = self.process_metadatas([human, mouse, rat], [a, b, c, d, e, f], [rnaSeq, microarr])
+        metadata_dct = self.make_metadata_dct([human, mouse, rat], [a, b, c, d, e, f], [rnaSeq, microarr])
         # try:
         return self.top_half_html(ids) + self.bottom_half_html(ids, metadata_dct)
         # except:
@@ -26,22 +28,28 @@ class WebApp:
 
     #Internal:
 
-    def process_metadatas(self, species, num_samples, platform):
+    def make_metadata_dct(self, species, num_samples, platform):
         metadata_dct={}
         if species:
             metadata_dct["Species"] = [val for val in species if val]
         if num_samples:
             metadata_dct["Num Samples"] = [val for val in num_samples if val]
         if platform:
-            metadata_dct["Platform"] = [val for val in species if val]
+            metadata_dct["Platform"] = [val for val in platform if val]
 
         print(f"\n\n\n{metadata_dct}\n\n\n\n")
         return metadata_dct
+    
+    #use pandas to make a dataframe that meets user filter requirements, then returns a list of corresponding IDs
+    def filter_ids_by_metas(metadata_dct):
+        dataFrame = pd.read_csv("dummy_metadatas.tsv", index_col=0, sep="\t")
+        for key, value_list in metadata_dct.items():
+            dataFrame = dataFrame[dataFrame[key].isin(value_list)]
+        return dataFrame.index.tolist()
 
     def create_id_list():
         print("\nIn create_id_lst()\\n")
         database_ids = []
-
         with open("csvFiles/testChromaIDs.csv") as id_file:
             for id in id_file.read().split(","):
                 database_ids.append(id.strip().strip('"'))
@@ -110,7 +118,7 @@ class WebApp:
         <div class="columns is-centered">
             <div class="columns is-three-quarters">
                 <table class="table is-size-medium" id="myTable" border="1">
-                    {self.generate_output_from_ids(ids, metadata_dct)}
+                    {self.handle_input_ids(ids, metadata_dct)}
                 </table>
             </div>
         </div>
@@ -118,6 +126,7 @@ class WebApp:
         </html>
         """
     
+    #user friendly error message with the try-except blocks
     def render_error(self):
         return f"""
         <html>
@@ -131,19 +140,17 @@ class WebApp:
         </html>
         """
 
-
     def invalid_id_msg(bad_format_ids, not_found_ids, valid_ids):
         error_message = ""
-
         if bad_format_ids:
             error_message += f"<tr><td>Sorry, the following IDs you entered were formatted incorrectly: {', '.join(bad_format_ids)}</td></tr>"
         if not_found_ids:
             error_message +=f"<tr><td>The following IDs you entered were not found in our database: {', '.join(not_found_ids)}</td></tr>"
         if valid_ids:
             error_message +=f"<tr><td>The following IDs you entered were valid: {', '.join(valid_ids)}</td></tr>"
-        
         return error_message
     
+    #returns a dictionary of the closest results to the user IDs input
     def generate_query_results(input_ids):
         with open("embeddingCollectionDict.json") as load_file:
             collection_dict = json.load(load_file)
@@ -151,6 +158,7 @@ class WebApp:
         chroma_client = chromadb.PersistentClient(path=".")
         my_collection = chroma_client.get_collection(name="embedding_collection")
         
+        print(f"\n\n\n\n input ids: {input_ids}")
         input_embeddings = [collection_dict[input_ids[i]]["Embedding"] for i in range(len(input_ids))]
 
         avg_embedding = []
@@ -161,23 +169,31 @@ class WebApp:
             avg_embedding.append(round(temp_sum/len(input_embeddings), 5))
 
         similarityResults = my_collection.query(query_embeddings=avg_embedding, n_results=5)
-        # print(f"\n\n{similarityResults['metadatas'][0][0]['Platform']}\n\n")
-
+        
+        #similarityResults = my_collection.query(query_texts=collection_dict[input_ids[0]]["Doc"], n_results=5)
         formatted_dict = {}
         for i in range(5):
             formatted_dict[similarityResults['ids'][0][i]] = {"Description": similarityResults['documents'][0][i]}
                                                             #    "Species": similarityResults['metadatas'][0][i]['Species'], \
                                                             #         "# Samples": similarityResults['metadatas'][0][i]['Num Samples'], \
                                                             #             "Platform": similarityResults['metadatas'][0][i]['Platform']}
-
         return formatted_dict
+        #TO DO return list of IDS
     
-    def generate_rows(valid_ids):
-        # Old code:
-        # call analyzeData to create json file of answers
-            # analyzeData.generate_results(valid_ids)
-
+    #calls generate_query_results and writes results in html code, to display results in a table 
+    def generate_rows(valid_ids, metadata_dct={}):
+        
+        #TO DO loop through lists and return top 5 most similar, keep chromadb order 
+        print(f"\n\n\nin generate rows, valid_ids: {valid_ids}")
+        print(f"\n\n\nin generate rows, metadata_dict: {metadata_dct}")
         results_dict = WebApp.generate_query_results(valid_ids)
+        filtered_ids = WebApp.filter_ids_by_metas(metadata_dct)
+
+        for key, value in results_dict.items():
+            if key in filtered_ids:
+                print("found a match")
+            else:
+                print("no matches found between filtered dataFrame and query results")
 
         rows = "<tr> <th>GSE ID</th> <th>Description</th> <th>Species</th> <th># Samples</th> <th>Platform</th></tr>"
         for id in results_dict.keys():
@@ -185,8 +201,9 @@ class WebApp:
             #{results_dict[id]['Species']}</td> <td>{results_dict[id]['# Samples']}</td> <td>{results_dict[id]['Platform']}</td>   </tr>"
         return rows
 
-    def generate_output_from_ids(self, ids, metadata_dct):
-        print("\n in generate_table_rows()\n")
+    #checks for invalid input, if all input is valid then calls generate_rows 
+    def handle_input_ids(self, ids, metadata_dct):
+        print("\n in handle_input_ids()\n")
         if (ids == ""):
             return ""
         
@@ -212,7 +229,9 @@ class WebApp:
         if bad_format_ids or not_found_ids:    
             return WebApp.invalid_id_msg(bad_format_ids, not_found_ids, valid_ids)
         else:
-            return WebApp.generate_rows(valid_ids)
+            print(f"\n\n\nin handle input, valid_ids: {valid_ids}")
+            print(f"\n\n\nin handle input, metadata_dct: {metadata_dct}")
+            return WebApp.generate_rows(valid_ids, metadata_dct)
     
     
 
@@ -220,13 +239,10 @@ class WebApp:
 if __name__ == '__main__':
     cherrypy.quickstart(WebApp(), '/')
 
-
-''' To-Do: 5/23
-    - try except block around every function in WebApp
-    - Create file with dummy metadatas for each dataset: spec name (hu, mouse, rat), num samples (int 1-10, 11-50, 51-100, 101-500, 501-1000, 1000+), platform (RNA seq, Microarray)
-        - add way to filter based on these on WebApp
-    - Pandas
-
-    - Long term: enter text, vs GSE id, with keywords to base search on
-
+'''
+TO-DO
+5/30
+    - Use keyword functionality - if a user enters a phrase, identify the words that onehotencoding has seen before and query based on that 
+    - jquery/javascript functionality without the form tag
+    - in the render_error function, store the error message to a file so that the administrator can see what's going wrong
 '''

@@ -1,4 +1,4 @@
-from sklearn.preprocessing import OneHotEncoder
+#from sklearn.preprocessing import OneHotEncoder
 import json
 import re
 import numpy as np
@@ -21,8 +21,8 @@ embedding_coll_vals = list(embedding_collection.values())
 
 my_collection.add(ids = list(embedding_collection.keys()), \
                          documents=[inner_dct["Doc"] for inner_dct in embedding_coll_vals], \
-                            embeddings=[inner_dct["Embedding"] for inner_dct in embedding_coll_vals],\
-                                metadatas=[inner_dct["Metadatas"] for inner_dct in embedding_coll_vals])
+                            embeddings=[inner_dct["Embedding"] for inner_dct in embedding_coll_vals])
+                                #metadatas=[inner_dct["Metadatas"] for inner_dct in embedding_coll_vals])
 
 
 

@@ -22,31 +22,31 @@ def main():
             row = [float(num) for num in row]
             test_embeddings.append(row)
 
+    '''
     with open("testMetasSpec.csv") as meta_file1:
         species = []
         s_reader = csv.reader(meta_file1)
         for row in s_reader:
             species = row
-     
     with open("testMetasNumSp.csv") as meta_file2:
         num_samples = []
         s_reader = csv.reader(meta_file2)
         for row in s_reader:
             num_samples = row
-
     with open("testMetasPlatf.csv") as meta_file3:
         platforms = []
         s_reader = csv.reader(meta_file3)
         for row in s_reader:
-            platforms = row       
+            platforms = row 
+    '''      
     
     #repeat for othr files
 
     for i in range(100):
         id_doc_dict[test_ids[i]] = {
             "Doc": test_docs[i], 
-            "Embedding": test_embeddings[i], 
-            "Metadatas": {"Species": species[i], "Num Samples": num_samples[i], "Platform": platforms[i]}
+            "Embedding": test_embeddings[i]
+            #"Metadatas": {"Species": species[i], "Num Samples": num_samples[i], "Platform": platforms[i]}
             }
 
     # Dump to json file
