@@ -12,10 +12,12 @@ class WebApp:
     @cherrypy.expose
     def index(self):
         #print(f"\n\n\n dictionary: \n\n\n {simpleDictionary}")
-        # try:
-        return self.top_half_html()
-        # except:
-        return self.render_error()
+        try:
+            return self.top_half_html()
+        except:
+            with open("error.txt", "w") as error_file:
+                traceback.print_exc(file=error_file)
+            return self.render_error()
 
     # a) 1-10, b) 11-50, c) 51-100, d) 101-500, e) 501-1000, f) 1000+
     @cherrypy.expose
@@ -43,12 +45,12 @@ class WebApp:
         return metadata_dct
     
     #use pandas to make a dataframe that meets user filter requirements, then returns a list of corresponding IDs
-    # def filter_ids_by_metas(metadata_dct):
-    #     dataFrame = pd.read_csv("dummy_metadatas.tsv", index_col=0, sep="\t")
-    #     for key, value_list in metadata_dct.items():
-    #         if(value_list):
-    #             dataFrame = dataFrame[dataFrame[key].isin(value_list)]
-    #     return dataFrame.index.tolist()
+    def filter_ids_by_metas(metadata_dct):
+        dataFrame = pd.read_csv("dummy_metadatas.tsv", index_col=0, sep="\t")
+        for key, value_list in metadata_dct.items():
+            if(value_list):
+                dataFrame = dataFrame[dataFrame[key].isin(value_list)]
+        return dataFrame.index.tolist()
 
     def create_id_list():
         print("\nIn create_id_lst()\\n")
@@ -185,9 +187,7 @@ class WebApp:
     
     #calls generate_query_results and writes results in html code, to display results in a table 
     def generate_rows(valid_ids, metadata_dct={}):
-        
-        #TO DO loop through lists and return top 5 most similar, keep chromadb order 
-
+ 
         results_ids = WebApp.generate_query_results(valid_ids)
         filtered_ids = WebApp.filter_ids_by_metas(metadata_dct)
         match_ids = []
@@ -251,9 +251,15 @@ if __name__ == '__main__':
 '''
 TO-DO
 5/30
-    - get embeddings to work again - same results fro chromadb every time 
-    - see lines 181 and 186
     - Use keyword functionality - if a user enters a phrase, identify the words that onehotencoding has seen before and query based on that 
     - jquery/javascript functionality without the form tag
-    - in the render_error function, store the error message to a file so that the administrator can see what's going wrong
+
+DONE
+- integrate filters + use pandas to display on the screen 
+- store error message in a file for admin to see/use 
+
+***to fix?
+- embeddings are working but distances are so similar that the order is different every time - problem?
+
 '''
+
