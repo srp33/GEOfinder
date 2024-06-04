@@ -21,10 +21,12 @@ class WebApp:
     @cherrypy.expose
     def query(self, ids, human="", mouse="", rat="", a="", b="", c="", d="", e="", f="", rnaSeq="", microarr=""):
         metadata_dct = self.make_metadata_dct([human, mouse, rat], [a, b, c, d, e, f], [rnaSeq, microarr])
-        # try:
-        return self.top_half_html(ids) + self.bottom_half_html(ids, metadata_dct)
-        # except:
-        return self.render_error()
+        try:
+            return self.top_half_html(ids) + self.bottom_half_html(ids, metadata_dct)
+        except:
+            with open("error.txt", "w") as error_file:
+                traceback.print_exc(file=error_file)
+            return self.render_error()
 
     #Internal:
 
@@ -41,11 +43,12 @@ class WebApp:
         return metadata_dct
     
     #use pandas to make a dataframe that meets user filter requirements, then returns a list of corresponding IDs
-    def filter_ids_by_metas(metadata_dct):
-        dataFrame = pd.read_csv("dummy_metadatas.tsv", index_col=0, sep="\t")
-        for key, value_list in metadata_dct.items():
-            dataFrame = dataFrame[dataFrame[key].isin(value_list)]
-        return dataFrame.index.tolist()
+    # def filter_ids_by_metas(metadata_dct):
+    #     dataFrame = pd.read_csv("dummy_metadatas.tsv", index_col=0, sep="\t")
+    #     for key, value_list in metadata_dct.items():
+    #         if(value_list):
+    #             dataFrame = dataFrame[dataFrame[key].isin(value_list)]
+    #     return dataFrame.index.tolist()
 
     def create_id_list():
         print("\nIn create_id_lst()\\n")
@@ -98,8 +101,8 @@ class WebApp:
                 <div class="column is-2"><strong>Platform:</strong><br>
                     <input type="checkbox" id="rnaSeq" name="rnaSeq" value="RNA sequencing">
                     <label for="rnaSeq">RNA Sequencing</label><br></p>
-                    <input type="checkbox" id="microarr" name="microarr" value="Microarrays">
-                    <label for="microarr">Microarrays</label><br><br><br><br><br><br>
+                    <input type="checkbox" id="microarr" name="microarr" value="Microarray">
+                    <label for="microarr">Microarray</label><br><br><br><br><br><br>
                 </div>
             </div>
         <button class="button is-info" type="submit">Submit</button>        
@@ -168,36 +171,42 @@ class WebApp:
                 temp_sum += embedding[i]
             avg_embedding.append(round(temp_sum/len(input_embeddings), 5))
 
-        similarityResults = my_collection.query(query_embeddings=avg_embedding, n_results=5)
-        
+        num_results = 50
+        similarityResults = my_collection.query(query_embeddings=avg_embedding, n_results=num_results)
+
         #similarityResults = my_collection.query(query_texts=collection_dict[input_ids[0]]["Doc"], n_results=5)
         formatted_dict = {}
-        for i in range(5):
+        for i in range(num_results):
             formatted_dict[similarityResults['ids'][0][i]] = {"Description": similarityResults['documents'][0][i]}
                                                             #    "Species": similarityResults['metadatas'][0][i]['Species'], \
                                                             #         "# Samples": similarityResults['metadatas'][0][i]['Num Samples'], \
                                                             #             "Platform": similarityResults['metadatas'][0][i]['Platform']}
-        return formatted_dict
-        #TO DO return list of IDS
+        return list(formatted_dict.keys())
     
     #calls generate_query_results and writes results in html code, to display results in a table 
     def generate_rows(valid_ids, metadata_dct={}):
         
         #TO DO loop through lists and return top 5 most similar, keep chromadb order 
-        print(f"\n\n\nin generate rows, valid_ids: {valid_ids}")
-        print(f"\n\n\nin generate rows, metadata_dict: {metadata_dct}")
-        results_dict = WebApp.generate_query_results(valid_ids)
-        filtered_ids = WebApp.filter_ids_by_metas(metadata_dct)
 
-        for key, value in results_dict.items():
-            if key in filtered_ids:
-                print("found a match")
-            else:
-                print("no matches found between filtered dataFrame and query results")
+        results_ids = WebApp.generate_query_results(valid_ids)
+        filtered_ids = WebApp.filter_ids_by_metas(metadata_dct)
+        match_ids = []
+
+        for id in results_ids:
+            if not (id in valid_ids) and (id in filtered_ids):
+                match_ids.append(id)
+
+        dataFrame = pd.read_csv("dummy_metadatas.tsv", index_col=0, sep="\t")
+        dataFrame = dataFrame.loc[match_ids]
+            
+        if not match_ids:
+            return "<h1>Sorry, there are no results that match your filter choices.</h1>"
 
         rows = "<tr> <th>GSE ID</th> <th>Description</th> <th>Species</th> <th># Samples</th> <th>Platform</th></tr>"
-        for id in results_dict.keys():
-            rows += f"<tr> <td>{id}</td> <td>{results_dict[id]['Description']}</td><td></tr>"
+        for id in match_ids:
+            rows += f'<tr> <td>{id}</td> <td>{dataFrame.loc[id,"Description"]}</td> \
+                <td>{dataFrame.loc[id,"Species"]}</td> <td>{dataFrame.loc[id,"Num Samples"]}</td> \
+                    <td>{dataFrame.loc[id,"Platform"]}</td> </tr>'
             #{results_dict[id]['Species']}</td> <td>{results_dict[id]['# Samples']}</td> <td>{results_dict[id]['Platform']}</td>   </tr>"
         return rows
 
@@ -242,6 +251,8 @@ if __name__ == '__main__':
 '''
 TO-DO
 5/30
+    - get embeddings to work again - same results fro chromadb every time 
+    - see lines 181 and 186
     - Use keyword functionality - if a user enters a phrase, identify the words that onehotencoding has seen before and query based on that 
     - jquery/javascript functionality without the form tag
     - in the render_error function, store the error message to a file so that the administrator can see what's going wrong

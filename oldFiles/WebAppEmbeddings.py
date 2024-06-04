@@ -229,4 +229,10 @@ if __name__ == '__main__':
 
     - Long term: enter text, vs GSE id, with keywords to base search on
 
+    5/30
+    - Use keyword functionality - if a user enters a phrase, identify the words that onehotencoding has seen before and query based on that 
+    - jquery/javascript functionality without the form tag
+    - in the render_error function, store the error message to a file so that the administrator can see what's going wrong
+
+
 '''

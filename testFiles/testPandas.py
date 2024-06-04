@@ -9,15 +9,6 @@ print(dataFrame.head(n=15))
 
 for key, value_list in metadata_dct.items():
     dataFrame = dataFrame[dataFrame[key].isin(value_list)]
-    #dataFrame = dataFrame.filter(like=value)
-
 
 print(dataFrame.head(n=15))
-        #myFile[(key) == value]
 
-# if "Species" in metadata_dct:
-#     for val in metadata_dct["Species"]:
-#         dataFrame = myFile[("Species") == val]
-# if "Num Samples" in metadata_dct:
-#     for val in metadata_dct["Species"]:
-#         dataFrame = myFile[("Species") == val]
