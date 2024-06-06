@@ -1,14 +1,5 @@
 Traceback (most recent call last):
-  File "/Users/abbymuir/Lab/GEOfinder/WebAppPandas.py", line 25, in query
-    return self.top_half_html(ids) + self.bottom_half_html(ids, metadata_dct)
-                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/abbymuir/Lab/GEOfinder/WebAppPandas.py", line 124, in bottom_half_html
-    {self.handle_input_ids(ids, metadata_dct)}
-     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/abbymuir/Lab/GEOfinder/WebAppPandas.py", line 243, in handle_input_ids
-    return WebApp.generate_rows(valid_ids, metadata_dct)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/abbymuir/Lab/GEOfinder/WebAppPandas.py", line 192, in generate_rows
-    filtered_ids = WebApp.filter_ids_by_metas(metadata_dct)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: type object 'WebApp' has no attribute 'filter_ids_by_metas'
+  File "c:\Users\annat\OneDrive\Documents\College\Spring2024\PiccoloResearchLab\GEOfinder\WebAppJQuery.py", line 31, in query
+    return self.bottom_half_html(ids, metadata_dct)
+           ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'WebApp' object has no attribute 'bottom_half_html'

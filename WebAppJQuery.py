@@ -22,10 +22,13 @@ class WebApp:
     # a) 1-10, b) 11-50, c) 51-100, d) 101-500, e) 501-1000, f) 1000+
     @cherrypy.expose
     def query(self, ids, human="", mouse="", rat="", a="", b="", c="", d="", e="", f="", rnaSeq="", microarr=""):
-        print(f"in query, here are the ids: {ids}")
+        print("\nReceived input:", ids, human, mouse, rat, a, b, c, d, e, f, rnaSeq, microarr)
+
         metadata_dct = self.make_metadata_dct([human, mouse, rat], [a, b, c, d, e, f], [rnaSeq, microarr])
+        print(f"\n\n\nIn query:{metadata_dct}\n\n\n\n")
+
         try:
-            return self.top_half_html(ids) + self.bottom_half_html(ids, metadata_dct)
+            return self.bottom_half_html(ids, metadata_dct)
         except:
             with open("error.txt", "w") as error_file:
                 traceback.print_exc(file=error_file)
@@ -65,70 +68,123 @@ class WebApp:
         print("\n in top_half()\n")
 
         return """
-            <html lang="en">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Dynamic Submit Button</title>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-            <style> 
-            .grayed-out {
-                color: #888888; /* Gray color */
+            <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GSE Search</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<style>
+.grayed-out {
+    color: #888888; /* Gray color */
+}
+</style>
+</head>
+<body>
+<h1 class="mt-3 subtitle is-3 has-text-centered is-family-sans-serif"><u>Enter GEO Accession IDs:</u></h1>
+
+<textarea id="inputText" class="content is-medium textarea has-fixed-size textarea is-hovered textarea is-info" placeholder="Enter IDs (ie. GSE123, GSE456)" rows="10"></textarea>
+
+<h1 class="mt-3 subtitle is-4 is-family-sans-serif"><u>Filters:</u></h1>
+<div class="columns">
+    <div class="column is-2"><strong>Species:</strong><br>
+        <input type="checkbox" id="human" name="human" value="human">
+        <label for="human">Human</label><br>
+        <input type="checkbox" id="mouse" name="mouse" value="mouse">
+        <label for="mouse">Mouse</label><br>
+        <input type="checkbox" id="rat" name="rat" value="rat">
+        <label for="rat">Rat</label><br><br>
+    </div>
+    <div class="column is-2"><strong># Samples:</strong><br>
+        <input type="checkbox" id="a" name="a" value="1-10">
+        <label for="a">1-10</label><br>
+        <input type="checkbox" id="b" name="b" value="11-50">
+        <label for="b">11-50</label><br>
+        <input type="checkbox" id="c" name="c" value="51-100">
+        <label for="c">51-100</label><br>
+        <input type="checkbox" id="d" name="d" value="101-500">
+        <label for="d">101-500</label><br>
+        <input type="checkbox" id="e" name="e" value="501-1000">
+        <label for="e">501-1000</label><br>
+        <input type="checkbox" id="f" name="f" value="1000+">
+        <label for="f">1000+</label><br><br>
+    </div>
+    <div class="column is-2"><strong>Platform:</strong><br>
+        <input type="checkbox" id="rnaSeq" name="rnaSeq" value="RNA sequencing">
+        <label for="rnaSeq">RNA Sequencing</label><br>
+        <input type="checkbox" id="microarr" name="microarr" value="Microarray">
+        <label for="microarr">Microarray</label><br><br><br><br><br><br>
+    </div>
+</div>
+
+<button id="submitButton" class="button is-info" disabled>Submit</button>
+
+<script>
+$(document).ready(function() {
+    $('#inputText').keyup(function() {
+        var inputText = $(this).val();
+        if (inputText.length > 0) {
+            $('#submitButton').prop('disabled', false);
+            $(this).removeClass('grayed-out'); // Remove grayed-out class to turn text black
+        } else {
+            $('#submitButton').prop('disabled', true);
+        }
+    });
+
+    $('#submitButton').click(function() {
+        var inputText = $('#inputText').val();
+        var checkboxValues = {};
+        
+        $('input[type=checkbox]').each(function() {
+            checkboxValues[$(this).attr('name')] = $(this).is(':checked') ? $(this).val() : '';
+        });
+
+        $(this).prop('disabled', true); // Disable the button
+        $('#inputText').addClass('grayed-out'); // Add gray color and disable textarea
+
+        $.ajax({
+            type: 'POST',
+            url: '/query',
+            data: {
+                ids: inputText,
+                human: checkboxValues['human'],
+                mouse: checkboxValues['mouse'],
+                rat: checkboxValues['rat'],
+                a: checkboxValues['a'],
+                b: checkboxValues['b'],
+                c: checkboxValues['c'],
+                d: checkboxValues['d'],
+                e: checkboxValues['e'],
+                f: checkboxValues['f'],
+                rnaSeq: checkboxValues['rnaSeq'],
+                microarr: checkboxValues['microarr']
+            },
+            success: function(response) {
+                // Handle success response
+                console.log(response);
+                $('#content').html(response);
+            },
+            error: function(xhr, status, error) {
+                // Handle error
+                console.error(xhr.responseText);
             }
-            </style>
-            </head>
-            <body>
+        });
+    });
+});
+</script>
 
-            <textarea id="inputText" class="content is-medium textarea has-fixed-size textarea is-hovered textarea is-info" placeholder="Enter IDs (ie. GSE123, GSE456)" rows="10"></textarea>
-            <button id="submitButton" class="button is-info" disabled>Submit</button>
+<div id="content"></div>
 
-            <script>
-            $(document).ready(function() {
-                $('#inputText').keyup(function() {
-                    var inputText = $(this).val();
-                    if (inputText.length > 0) {
-                        $('#submitButton').prop('disabled', false);
-                        $(this).removeClass('grayed-out'); // Remove grayed-out class to turn text black
-                    } else {
-                        $('#submitButton').prop('disabled', true);
-                    }
-                    
-                });
-
-                $('#submitButton').click(function() {
-                    var inputText = $('#inputText').val();
-                    $(this).prop('disabled', true); // Disable the button
-                    $('#inputText').addClass('grayed-out'); // Add gray color and disable textarea
-                    $.ajax({
-                        type: 'POST',
-                        url: '/query',
-                        <!--(self, ids, human="", mouse="", rat="", a="", b="", c="", d="", e="", f="", rnaSeq="", microarr=""-->
-                        data: {ids: inputText},
-                        success: function(response) {
-                            // Handle success response
-                            console.log(response);
-                        },
-                        error: function(xhr, status, error) {
-                            // Handle error
-                            console.error(xhr.responseText);
-                        }
-                    });
-                });
-            });
-            </script>
-
-
-            </body>
-            </html>
+</body>
+</html>
         """
-
     
-    #<input type="text" name="ids" value = "{ids}" placeholder="Enter IDs (ie. GSE123, GSE456)">
     def bottom_half_html(self, ids, metadata_dct):
         print("\n in bottom_half()\n")
         return f"""
-        <h1 class="py-4 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">Relevant Studies:</h1>
+        
         <div class="columns is-centered">
             <div class="columns is-three-quarters">
                 <table class="table is-size-medium" id="myTable" border="1">
@@ -137,20 +193,6 @@ class WebApp:
             </div>
         </div>
         </body>
-        </html>
-        """
-    
-    #user friendly error message with the try-except blocks
-    def render_error(self):
-        return f"""
-        <html>
-        <link 
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css"
-        >
-            <body>
-                <h1 class="mt-3 subtitle is-3 has-text-centered is-family-sans-serif">An error occured. Please contact the administrator.</h1>
-            </body>
         </html>
         """
 
@@ -248,11 +290,13 @@ class WebApp:
 
         #test values: gse001, gse002, gse789, gse990, jkf292, fif404
         if bad_format_ids or not_found_ids:    
-            return WebApp.invalid_id_msg(bad_format_ids, not_found_ids, valid_ids)
+            return '<caption class="py-4 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">ERROR:</caption>' + \
+                WebApp.invalid_id_msg(bad_format_ids, not_found_ids, valid_ids)
         else:
             print(f"\n\n\nin handle input, valid_ids: {valid_ids}")
             print(f"\n\n\nin handle input, metadata_dct: {metadata_dct}")
-            return WebApp.generate_rows(valid_ids, metadata_dct)
+            return '<caption class="py-4 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">Relevant Studies:</caption>' + \
+                WebApp.generate_rows(valid_ids, metadata_dct)
     
     
 
