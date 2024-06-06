@@ -21,14 +21,15 @@ class WebApp:
 
     # a) 1-10, b) 11-50, c) 51-100, d) 101-500, e) 501-1000, f) 1000+
     @cherrypy.expose
-    def query(self, ids, human="", mouse="", rat="", a="", b="", c="", d="", e="", f="", rnaSeq="", microarr=""):
+    def query(self, ids, human="", mouse="", rat="", a="", b="", c="", d="", e="", f="", rnaSeq="", microarr="", searchType="geoID"):
         print("\nReceived input:", ids, human, mouse, rat, a, b, c, d, e, f, rnaSeq, microarr)
+        print(f"searchType: {searchType}, type: {type(searchType)}")
 
         metadata_dct = self.make_metadata_dct([human, mouse, rat], [a, b, c, d, e, f], [rnaSeq, microarr])
-        print(f"\n\n\nIn query:{metadata_dct}\n\n\n\n")
+        print(f"\n\n\nIn query, metadata_dct:{metadata_dct}\n\n\n\n")
 
         try:
-            return self.bottom_half_html(ids, metadata_dct)
+            return self.bottom_half_html(ids, metadata_dct, searchType)
         except:
             with open("error.txt", "w") as error_file:
                 traceback.print_exc(file=error_file)
@@ -45,7 +46,6 @@ class WebApp:
         if platform:
             metadata_dct["Platform"] = [val for val in platform if val]
 
-        print(f"\n\n\n{metadata_dct}\n\n\n\n")
         return metadata_dct
     
     #use pandas to make a dataframe that meets user filter requirements, then returns a list of corresponding IDs
@@ -57,7 +57,6 @@ class WebApp:
         return dataFrame.index.tolist()
 
     def create_id_list():
-        print("\nIn create_id_lst()\\n")
         database_ids = []
         with open("csvFiles/testChromaIDs.csv") as id_file:
             for id in id_file.read().split(","):
@@ -65,8 +64,6 @@ class WebApp:
         return database_ids
 
     def top_half_html(self, ids = ""):
-        print("\n in top_half()\n")
-
         return """
             <!DOCTYPE html>
 <html lang="en">
@@ -85,11 +82,11 @@ class WebApp:
 <body>
 <h1 class="mt-3 subtitle is-3 has-text-centered is-family-sans-serif"><u>Enter GEO Accession IDs or Keywords:</u></h1>
 
-<h3 class="mt-3 subtitle is-3 is-family-sans-serif"><u>Search by:</u></h1>
+<h1 class="mt-3 subtitle is-4 is-family-sans-serif"><u>Search by:</u></h1>
 <input type="radio" id="geoID" name="searchBy" value="geoID">
-<label for="geoID">GEO ID's</label><br>
+<label for="geoID">GEO IDs</label>
 <input type="radio" id="keyword" name="searchBy" value="keyword">
-<label for="keyword">Keywords</label><br>
+<label for="keyword">Keywords</label><br><br>
 
 <textarea id="inputText" class="content is-medium textarea has-fixed-size textarea is-hovered textarea is-info" placeholder="Enter IDs (ie. GSE123, GSE456)" rows="10"></textarea>
 
@@ -101,7 +98,7 @@ class WebApp:
         <input type="checkbox" id="mouse" name="mouse" value="mouse">
         <label for="mouse">Mouse</label><br>
         <input type="checkbox" id="rat" name="rat" value="rat">
-        <label for="rat">Rat</label><br><br>
+        <label for="rat">Rat</label><br>
     </div>
     <div class="column is-2"><strong># Samples:</strong><br>
         <input type="checkbox" id="a" name="a" value="1-10">
@@ -115,13 +112,13 @@ class WebApp:
         <input type="checkbox" id="e" name="e" value="501-1000">
         <label for="e">501-1000</label><br>
         <input type="checkbox" id="f" name="f" value="1000+">
-        <label for="f">1000+</label><br><br>
+        <label for="f">1000+</label><br>
     </div>
     <div class="column is-2"><strong>Platform:</strong><br>
         <input type="checkbox" id="rnaSeq" name="rnaSeq" value="RNA sequencing">
         <label for="rnaSeq">RNA Sequencing</label><br>
         <input type="checkbox" id="microarr" name="microarr" value="Microarray">
-        <label for="microarr">Microarray</label><br><br><br><br><br><br>
+        <label for="microarr">Microarray</label><br><br><br><br><br>
     </div>
 </div>
 
@@ -129,6 +126,8 @@ class WebApp:
 
 <script>
 $(document).ready(function() {
+    var searchType = 'geoID';
+
     $('#inputText').keyup(function() {
         var inputText = $(this).val();
         if (inputText.length > 0) {
@@ -137,6 +136,10 @@ $(document).ready(function() {
         } else {
             $('#submitButton').prop('disabled', true);
         }
+    });
+
+    $('input[type=radio][name=searchBy]').change(function() {
+        searchType = $(this).val(); 
     });
 
     $('#submitButton').click(function() {
@@ -165,7 +168,8 @@ $(document).ready(function() {
                 e: checkboxValues['e'],
                 f: checkboxValues['f'],
                 rnaSeq: checkboxValues['rnaSeq'],
-                microarr: checkboxValues['microarr']
+                microarr: checkboxValues['microarr'],
+                searchType: searchType
             },
             success: function(response) {
                 // Handle success response
@@ -187,14 +191,14 @@ $(document).ready(function() {
 </html>
         """
     
-    def bottom_half_html(self, ids, metadata_dct):
+    def bottom_half_html(self, ids, metadata_dct, searchType):
         print("\n in bottom_half()\n")
         return f"""
         
         <div class="columns is-centered">
             <div class="columns is-three-quarters">
                 <table class="table is-size-medium" id="myTable" border="1">
-                    {self.handle_input_ids(ids, metadata_dct)}
+                    {self.handle_input_ids(ids, metadata_dct, searchType)}
                 </table>
             </div>
         </div>
@@ -220,7 +224,6 @@ $(document).ready(function() {
         chroma_client = chromadb.PersistentClient(path=".")
         my_collection = chroma_client.get_collection(name="embedding_collection")
         
-        print(f"\n\n\n\n input ids: {input_ids}")
         input_embeddings = [collection_dict[input_ids[i]]["Embedding"] for i in range(len(input_ids))]
 
         avg_embedding = []
@@ -240,13 +243,10 @@ $(document).ready(function() {
                                                             #    "Species": similarityResults['metadatas'][0][i]['Species'], \
                                                             #         "# Samples": similarityResults['metadatas'][0][i]['Num Samples'], \
                                                             #             "Platform": similarityResults['metadatas'][0][i]['Platform']}
-        print(f"generate_query_results, returning {list(formatted_dict.keys())}")
         return list(formatted_dict.keys())
     
     #calls generate_query_results and writes results in html code, to display results in a table 
     def generate_rows(valid_ids, metadata_dct={}):
-
-        print("in generate_rows")
  
         results_ids = WebApp.generate_query_results(valid_ids)
         filtered_ids = WebApp.filter_ids_by_metas(metadata_dct)
@@ -271,36 +271,35 @@ $(document).ready(function() {
         return rows
 
     #checks for invalid input, if all input is valid then calls generate_rows 
-    def handle_input_ids(self, ids, metadata_dct):
-        print("\n in handle_input_ids()\n")
+    def handle_input_ids(self, ids, metadata_dct, searchType):
+        
         if (ids == ""):
             return ""
-        
-        id_lst = re.split(r"\n|,",ids.strip())
-        bad_format_ids = []
-        not_found_ids = []
-        valid_ids = []
-        
-        # access comprehensive list of ids from external csv
-        database_ids = WebApp.create_id_list()
 
-        for id in id_lst:
-            id = id.strip().upper()
+        if searchType=="geoID":  
+            id_lst = re.split(r"\n|,",ids.strip())
+            bad_format_ids = []
+            not_found_ids = []
+            valid_ids = []
+            
+            # access comprehensive list of ids from external csv
+            database_ids = WebApp.create_id_list()
 
-            if not re.search(r"GSE\d+",id):
-                bad_format_ids.append(id)
-            elif id not in database_ids:
-                not_found_ids.append(id)
-            else: 
-                valid_ids.append(id)
+            for id in id_lst:
+                id = id.strip().upper()
+
+                if not re.search(r"GSE\d+",id):
+                    bad_format_ids.append(id)
+                elif id not in database_ids:
+                    not_found_ids.append(id)
+                else: 
+                    valid_ids.append(id)
 
         #test values: gse001, gse002, gse789, gse990, jkf292, fif404
         if bad_format_ids or not_found_ids:    
             return '<caption class="py-4 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">ERROR:</caption>' + \
                 WebApp.invalid_id_msg(bad_format_ids, not_found_ids, valid_ids)
         else:
-            print(f"\n\n\nin handle input, valid_ids: {valid_ids}")
-            print(f"\n\n\nin handle input, metadata_dct: {metadata_dct}")
             return '<caption class="py-4 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">Relevant Studies:</caption>' + \
                 WebApp.generate_rows(valid_ids, metadata_dct)
     
@@ -311,7 +310,11 @@ if __name__ == '__main__':
     cherrypy.quickstart(WebApp(), '/')
 
 '''
-6/5 TO-DO
-- figure out how to append more HTML to the screen once the submit button gets clicked 
-- is there a jquery function that allows you to append/uncover html?
+6/6 TO-DO
+where we left off:
+- create searchType variable, and have passed it as parameter in functions that use it, now we just need to implement it accordingly in generate_query_results
+onehotencoder:
+- how to distinguish between words that onehotencoder has vs hasn't seen before
+- query using the word that the user inputs??
+
 '''

@@ -1,5 +1,16 @@
 Traceback (most recent call last):
-  File "c:\Users\annat\OneDrive\Documents\College\Spring2024\PiccoloResearchLab\GEOfinder\WebAppJQuery.py", line 31, in query
-    return self.bottom_half_html(ids, metadata_dct)
-           ^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'WebApp' object has no attribute 'bottom_half_html'
+  File "/Users/abbymuir/Lab/GEOfinder/WebAppKeywords.py", line 32, in query
+    return self.bottom_half_html(ids, metadata_dct, searchType)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abbymuir/Lab/GEOfinder/WebAppKeywords.py", line 201, in bottom_half_html
+    {self.handle_input_ids(ids, metadata_dct, searchType)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abbymuir/Lab/GEOfinder/WebAppKeywords.py", line 304, in handle_input_ids
+    WebApp.generate_rows(valid_ids, metadata_dct, searchType)
+  File "/Users/abbymuir/Lab/GEOfinder/WebAppKeywords.py", line 252, in generate_rows
+    filtered_ids = WebApp.filter_ids_by_metas(metadata_dct)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abbymuir/Lab/GEOfinder/WebAppKeywords.py", line 54, in filter_ids_by_metas
+    for key, value_list in metadata_dct.items():
+                           ^^^^^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'items'
