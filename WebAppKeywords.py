@@ -192,7 +192,7 @@ $(document).ready(function() {
         """
     
     def bottom_half_html(self, ids, metadata_dct, searchType):
-        print("\n in bottom_half()\n")
+        print("\n in bottom_half()", ids, metadata_dct, searchType)
         return f"""
         
         <div class="columns is-centered">
@@ -220,7 +220,7 @@ $(document).ready(function() {
         return error_message
     
     #returns a dictionary of the closest results to the user IDs input
-    def generate_query_results(input_ids):
+    def generate_id_query_results(input_ids):
         with open("embeddingCollectionDict.json") as load_file:
             collection_dict = json.load(load_file)
 
@@ -248,10 +248,39 @@ $(document).ready(function() {
                                                             #             "Platform": similarityResults['metadatas'][0][i]['Platform']}
         return list(formatted_dict.keys())
     
+    #returns a dictionary of the closest results to the user's keyword input
+    def generate_keyword_query_results(words):
+
+        for i in range(100-len(words)):
+            words += " the"
+        
+        chroma_client = chromadb.PersistentClient(path=".")
+        my_collection = chroma_client.get_collection(name="embedding_collection")
+        
+        num_results = 50
+        similarityResults = my_collection.query(query_texts=[words], n_results=num_results)
+
+        formatted_dict = {}
+        for i in range(num_results):
+            formatted_dict[similarityResults['ids'][0][i]] = {"Description": similarityResults['documents'][0][i]}
+                                                            #    "Species": similarityResults['metadatas'][0][i]['Species'], \
+                                                            #         "# Samples": similarityResults['metadatas'][0][i]['Num Samples'], \
+                                                            #             "Platform": similarityResults['metadatas'][0][i]['Platform']}
+        return list(formatted_dict.keys())
+    
     #calls generate_query_results and writes results in html code, to display results in a table 
-    def generate_rows(valid_ids, metadata_dct={}):
- 
-        results_ids = WebApp.generate_query_results(valid_ids)
+    def generate_rows(valid_ids=[], words="", metadata_dct={}):
+        print("\nGenerate_rows:", valid_ids, words, metadata_dct)
+
+        if valid_ids:
+            print("Query by ids...")
+            results_ids = WebApp.generate_id_query_results(valid_ids)
+        elif words:
+            print("Query by keywords...")
+            results_ids = WebApp.generate_keyword_query_results(words)
+        else:
+            print("\nNo inputs in generate_rows!!\n")
+
         filtered_ids = WebApp.filter_ids_by_metas(metadata_dct)
         match_ids = []
 
@@ -275,10 +304,13 @@ $(document).ready(function() {
 
     #checks for invalid input, if all input is valid then calls generate_rows 
     def handle_input_ids(self, ids, metadata_dct, searchType):
+        print("\nHandle_input_ids:", ids, metadata_dct, searchType)
         
         if (ids == ""):
             return ""
-        elif searchType=="geoID":  
+        
+        elif searchType=="geoID":
+
             id_lst = re.split(r"\n|,",ids.strip())
             bad_format_ids = []
             not_found_ids = []
@@ -297,13 +329,26 @@ $(document).ready(function() {
                 else: 
                     valid_ids.append(id)
 
-        #test values: gse001, gse002, gse789, gse990, jkf292, fif404
-        if bad_format_ids or not_found_ids:    
-            return '<caption class="py-4 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">ERROR:</caption>' + \
-                WebApp.invalid_id_msg(bad_format_ids, not_found_ids, valid_ids)
+            #test values: gse001, gse002, gse789, gse990, jkf292, fif404
+            if bad_format_ids or not_found_ids:    
+                return '<caption class="py-4 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">ERROR:</caption>' + \
+                    WebApp.invalid_id_msg(bad_format_ids, not_found_ids, valid_ids)
+            else:
+                print("\nCalling generate rows with ids", valid_ids, metadata_dct)
+                return '<caption class="py-4 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">Relevant Studies:</caption>' + \
+                    WebApp.generate_rows(valid_ids=valid_ids, metadata_dct=metadata_dct)
+
+        elif searchType=="keyword":
+            words = ids.strip()
+            
+            print("\nCalling generate rows with keywords", words, metadata_dct)
+            return WebApp.generate_rows(words=words, metadata_dct=metadata_dct)
+
         else:
-            return '<caption class="py-4 mt-3 subtitle is-3 has-text-centered is-family-sans-serif">Relevant Studies:</caption>' + \
-                WebApp.generate_rows(valid_ids, metadata_dct)
+            print("\nNo inputs in handle_input_ids!!\n")
+
+
+        
     
     
 
