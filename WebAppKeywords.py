@@ -202,6 +202,9 @@ $(document).ready(function() {
                 </table>
             </div>
         </div>
+        <script>
+        $('#submitButton').prop('disabled', false);
+        </script>
         </body>
         </html>
         """
@@ -275,8 +278,7 @@ $(document).ready(function() {
         
         if (ids == ""):
             return ""
-
-        if searchType=="geoID":  
+        elif searchType=="geoID":  
             id_lst = re.split(r"\n|,",ids.strip())
             bad_format_ids = []
             not_found_ids = []
