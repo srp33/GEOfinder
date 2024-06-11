@@ -259,6 +259,7 @@ $(document).ready(function() {
         
         num_results = 50
         similarityResults = my_collection.query(query_texts=[words], n_results=num_results)
+        print("\n\nin generate keyword results, similarity results: ", similarityResults)
 
         formatted_dict = {}
         for i in range(num_results):
