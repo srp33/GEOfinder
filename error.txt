@@ -1,33 +1,33 @@
 Traceback (most recent call last):
-  File "/Users/abbymuir/Lab/GEOfinder/WebAppKeywords.py", line 32, in query
+  File "c:\Users\annat\OneDrive\Documents\College\Spring2024\PiccoloResearchLab\GEOfinder\WebAppKeywords.py", line 32, in query
     return self.bottom_half_html(ids, metadata_dct, searchType)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/abbymuir/Lab/GEOfinder/WebAppKeywords.py", line 201, in bottom_half_html
+  File "c:\Users\annat\OneDrive\Documents\College\Spring2024\PiccoloResearchLab\GEOfinder\WebAppKeywords.py", line 201, in bottom_half_html
     {self.handle_input_ids(ids, metadata_dct, searchType)}
      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/abbymuir/Lab/GEOfinder/WebAppKeywords.py", line 346, in handle_input_ids
+  File "c:\Users\annat\OneDrive\Documents\College\Spring2024\PiccoloResearchLab\GEOfinder\WebAppKeywords.py", line 346, in handle_input_ids
     return WebApp.generate_rows(words=words, metadata_dct=metadata_dct)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/abbymuir/Lab/GEOfinder/WebAppKeywords.py", line 281, in generate_rows
+  File "c:\Users\annat\OneDrive\Documents\College\Spring2024\PiccoloResearchLab\GEOfinder\WebAppKeywords.py", line 281, in generate_rows
     results_ids = WebApp.generate_keyword_query_results(words)
                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/abbymuir/Lab/GEOfinder/WebAppKeywords.py", line 261, in generate_keyword_query_results
+  File "c:\Users\annat\OneDrive\Documents\College\Spring2024\PiccoloResearchLab\GEOfinder\WebAppKeywords.py", line 261, in generate_keyword_query_results
     similarityResults = my_collection.query(query_texts=[words], n_results=num_results)
                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/chromadb/api/models/Collection.py", line 345, in query
+  File "C:\Users\annat\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\chromadb\api\models\Collection.py", line 345, in query
     query_results = self._client._query(
                     ^^^^^^^^^^^^^^^^^^^^
-  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/chromadb/telemetry/opentelemetry/__init__.py", line 143, in wrapper
+  File "C:\Users\annat\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\chromadb\telemetry\opentelemetry\__init__.py", line 143, in wrapper
     return f(*args, **kwargs)
            ^^^^^^^^^^^^^^^^^^
-  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/chromadb/rate_limiting/__init__.py", line 45, in wrapper
+  File "C:\Users\annat\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\chromadb\rate_limiting\__init__.py", line 45, in wrapper
     return f(self, *args, **kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/chromadb/api/segment.py", line 685, in _query
+  File "C:\Users\annat\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\chromadb\api\segment.py", line 685, in _query
     self._validate_dimension(coll, len(embedding), update=False)
-  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/chromadb/telemetry/opentelemetry/__init__.py", line 143, in wrapper
+  File "C:\Users\annat\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\chromadb\telemetry\opentelemetry\__init__.py", line 143, in wrapper
     return f(*args, **kwargs)
            ^^^^^^^^^^^^^^^^^^
-  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/chromadb/api/segment.py", line 825, in _validate_dimension
+  File "C:\Users\annat\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\chromadb\api\segment.py", line 825, in _validate_dimension
     raise InvalidDimensionException(
 chromadb.errors.InvalidDimensionException: Embedding dimension 384 does not match collection dimensionality 909

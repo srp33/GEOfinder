@@ -365,4 +365,12 @@ onehotencoder:
 - how to distinguish between words that onehotencoder has vs hasn't seen before
 - query using the word that the user inputs??
 
+
+- automatically select GEO ids
+- in results table, within id include link; opens in same tab
+- auro scroll down to results
+- species, num samp, platform -> experiment type (w/ new vals), date (later) 
+
+- use tsv to create chromadb database (id, emb, metas). One at a time. This one will have less instances for our computer RAM
+
 '''
